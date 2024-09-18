@@ -24,7 +24,6 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
-
   final String title;
 
   @override
@@ -33,12 +32,27 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  // Botão de checagem
-  bool isChecked = false;
+  List<String> lista = ['Escovar Dentes', 'Tomar Café', 'Almoçar', 'Jantar', 'Dormir'];
 
-  void _toggleCheck() {
+  // Botão de checagem
+  late List<bool> checkedItems;
+
+  @override
+  void initState() {
+    super.initState();
+    checkedItems = List.generate(lista.length, (_) => false);
+  }
+
+  void _toggleCheck(int i) {
     setState(() {
-      isChecked = !isChecked;
+      checkedItems[i] = !checkedItems[i];
+    });
+  }
+
+  void _deleteTarefa (int i) {
+    setState(() {
+      lista.removeAt(i);
+      checkedItems.removeAt(i);
     });
   }
 
@@ -52,34 +66,35 @@ class _MyHomePageState extends State<MyHomePage> {
         
         title: Text(widget.title),
       ),
-      body: Center(
-        
-        child: Column(
-          
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            for (var item in lista) ...[
-              SizedBox(
-                height: 20,
-              ),
-              Row(
-                children: [
-                  IconButton(
-                    icon: Icon( isChecked ? Icons.check_box : Icons.check_box_outline_blank), 
-                    onPressed: () {
-                      setState(() {
-                        _toggleCheck();
-                      });
-                    }, 
-                  ),
-                  Text(
-                    item
-                  ),
-                ],
-              ),
-            ],
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          for (int i = 0; i < lista.length; i++) ...[
+            SizedBox(
+              height: 20,
+            ),
+            Row(
+              children: [
+                IconButton(
+                  icon: Icon( checkedItems[i] ? Icons.check_box : Icons.check_box_outline_blank), 
+                  onPressed: () {
+                    _toggleCheck(i);
+                  }, 
+                ),
+                Text(
+                  lista[i]
+                ),
+                IconButton(
+                  onPressed: () {
+                    _deleteTarefa(i);
+                  }, 
+                  icon: Icon(Icons.delete),
+                  color: Colors.red,
+                )
+              ],
+            ),
           ],
-        ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {},
@@ -89,5 +104,3 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
-
-List<String> lista = ['Escovar Dentes', 'Tomar Café', 'Almoçar', 'Jantar'];
