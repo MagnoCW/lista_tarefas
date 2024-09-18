@@ -34,7 +34,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<String> lista = ['Escovar Dentes', 'Tomar Café', 'Almoçar', 'Jantar', 'Dormir'];
 
-  // Botão de checagem
+  TextEditingController _editingController = TextEditingController();
+  
   late List<bool> checkedItems;
 
   @override
@@ -56,6 +57,14 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void _addTarefa () {
+    setState(() {
+      lista.add(_editingController.text);
+      checkedItems.add(false);
+      _editingController.clear();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     
@@ -69,6 +78,14 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
+          SizedBox(height: 5,),
+          TextField(
+            controller: _editingController,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: 'Digite a nova tarefa',
+            ),
+          ),
           for (int i = 0; i < lista.length; i++) ...[
             SizedBox(
               height: 20,
@@ -97,7 +114,9 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          _addTarefa();
+        },
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ),
