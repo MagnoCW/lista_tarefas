@@ -91,50 +91,63 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           SizedBox(height: 20),
           Text('Tarefas Não Concluídas', style: TextStyle(fontWeight: FontWeight.bold)),
-          for (int i = 0; i < tarefas_nao_concluidas.length; i++) ...[
-            SizedBox(height: 10),
-            Row(
-              children: [
-                IconButton(
-                  icon: Icon(Icons.check_box_outline_blank),
-                  onPressed: () {
-                    _completed(i);
-                  },
-                ),
-                Expanded(child: Text(tarefas_nao_concluidas[i])),
-                IconButton(
-                  onPressed: () {
-                    _deleteTarefaNaoConcluida(i);
-                  },
-                  icon: Icon(Icons.delete),
-                  color: Colors.red,
-                ),
-              ],
+          Expanded(
+            child: ListView.builder(
+              itemCount: tarefas_nao_concluidas.length,
+              itemBuilder: (context, index) {
+                return Card(
+                  surfaceTintColor: Colors.red,
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.check_box_outline_blank),
+                        onPressed: () {
+                          _completed(index);
+                        },
+                      ),
+                      Expanded(child: Text(tarefas_nao_concluidas[index])),
+                      IconButton(
+                        onPressed: () {
+                          _deleteTarefaNaoConcluida(index);
+                        },
+                        icon: Icon(Icons.delete),
+                        color: Colors.red,
+                      ),
+                    ],
+                  ),
+                );
+              }
             ),
-          ],
-          SizedBox(height: 20),
+          ),
           Text('Tarefas Concluídas', style: TextStyle(fontWeight: FontWeight.bold)),
-          for (int i = 0; i < tarefas_concluidas.length; i++) ...[
-            SizedBox(height: 10),
-            Row(
-              children: [
-                IconButton(
-                  icon: Icon(Icons.check_box),
-                  onPressed: () {
-                    _notCompleted(i);
-                  },
-                ),
-                Expanded(child: Text(tarefas_concluidas[i])),
-                IconButton(
-                  onPressed: () {
-                    _deleteTarefaConcluida(i);
-                  },
-                  icon: Icon(Icons.delete),
-                  color: Colors.red,
-                ),
-              ],
+          Expanded(
+            child: ListView.builder(
+              itemCount: tarefas_concluidas.length,
+              itemBuilder: (context, index) {
+                return Card(
+                  surfaceTintColor: Colors.green,
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.check_box),
+                        onPressed: () {
+                          _notCompleted(index);
+                        },
+                      ),
+                      Expanded(child: Text(tarefas_concluidas[index])),
+                      IconButton(
+                        onPressed: () {
+                          _deleteTarefaConcluida(index);
+                        },
+                        icon: Icon(Icons.delete),
+                        color: Colors.red,
+                      ),
+                    ],
+                  ),      
+                );
+              },
             ),
-          ],
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -142,6 +155,7 @@ class _MyHomePageState extends State<MyHomePage> {
         tooltip: 'Adicionar Tarefa',
         child: const Icon(Icons.add),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }
