@@ -31,54 +31,57 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
-  List<String> lista = ['Escovar Dentes', 'Tomar Café', 'Almoçar', 'Jantar', 'Dormir'];
-
-  TextEditingController _editingController = TextEditingController();
+  List<String> tarefas_nao_concluidas = [];
+  List<String> tarefas_concluidas = [];
   
-  late List<bool> checkedItems;
+  TextEditingController _editingController = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    checkedItems = List.generate(lista.length, (_) => false);
-  }
-
-  void _toggleCheck(int i) {
+  void _completed(int i) {
     setState(() {
-      checkedItems[i] = !checkedItems[i];
+      tarefas_concluidas.add(tarefas_nao_concluidas[i]);
+      tarefas_nao_concluidas.removeAt(i);
     });
   }
 
-  void _deleteTarefa (int i) {
+  void _notCompleted(int i) {
     setState(() {
-      lista.removeAt(i);
-      checkedItems.removeAt(i);
+      tarefas_nao_concluidas.add(tarefas_concluidas[i]);
+      tarefas_concluidas.removeAt(i);
     });
   }
 
-  void _addTarefa () {
+  void _deleteTarefaNaoConcluida(int i) {
     setState(() {
-      lista.add(_editingController.text);
-      checkedItems.add(false);
-      _editingController.clear();
+      tarefas_nao_concluidas.removeAt(i);
+    });
+  }
+
+  void _deleteTarefaConcluida(int i) {
+    setState(() {
+      tarefas_concluidas.removeAt(i);
+    });
+  }
+
+  void _addTarefa() {
+    setState(() {
+      if (_editingController.text.isNotEmpty) {
+        tarefas_nao_concluidas.add(_editingController.text);
+        _editingController.clear();
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
       appBar: AppBar(
-        
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        
         title: Text(widget.title),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
-          SizedBox(height: 5,),
+          SizedBox(height: 5),
           TextField(
             controller: _editingController,
             decoration: InputDecoration(
@@ -86,38 +89,57 @@ class _MyHomePageState extends State<MyHomePage> {
               labelText: 'Digite a nova tarefa',
             ),
           ),
-          for (int i = 0; i < lista.length; i++) ...[
-            SizedBox(
-              height: 20,
-            ),
+          SizedBox(height: 20),
+          Text('Tarefas Não Concluídas', style: TextStyle(fontWeight: FontWeight.bold)),
+          for (int i = 0; i < tarefas_nao_concluidas.length; i++) ...[
+            SizedBox(height: 10),
             Row(
               children: [
                 IconButton(
-                  icon: Icon( checkedItems[i] ? Icons.check_box : Icons.check_box_outline_blank), 
+                  icon: Icon(Icons.check_box_outline_blank),
                   onPressed: () {
-                    _toggleCheck(i);
-                  }, 
+                    _completed(i);
+                  },
                 ),
-                Text(
-                  lista[i]
-                ),
+                Expanded(child: Text(tarefas_nao_concluidas[i])),
                 IconButton(
                   onPressed: () {
-                    _deleteTarefa(i);
-                  }, 
+                    _deleteTarefaNaoConcluida(i);
+                  },
                   icon: Icon(Icons.delete),
                   color: Colors.red,
-                )
+                ),
+              ],
+            ),
+          ],
+          SizedBox(height: 20),
+          Text('Tarefas Concluídas', style: TextStyle(fontWeight: FontWeight.bold)),
+          for (int i = 0; i < tarefas_concluidas.length; i++) ...[
+            SizedBox(height: 10),
+            Row(
+              children: [
+                IconButton(
+                  icon: Icon(Icons.check_box),
+                  onPressed: () {
+                    _notCompleted(i);
+                  },
+                ),
+                Expanded(child: Text(tarefas_concluidas[i])),
+                IconButton(
+                  onPressed: () {
+                    _deleteTarefaConcluida(i);
+                  },
+                  icon: Icon(Icons.delete),
+                  color: Colors.red,
+                ),
               ],
             ),
           ],
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _addTarefa();
-        },
-        tooltip: 'Increment',
+        onPressed: _addTarefa,
+        tooltip: 'Adicionar Tarefa',
         child: const Icon(Icons.add),
       ),
     );
