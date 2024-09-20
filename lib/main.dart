@@ -31,7 +31,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<String> tarefas_nao_concluidas = [];
+  List<String> tarefas_nao_concluidas = ['1','2','3','4'];
   List<String> tarefas_concluidas = [];
   
   TextEditingController _editingController = TextEditingController();
@@ -92,60 +92,76 @@ class _MyHomePageState extends State<MyHomePage> {
           SizedBox(height: 20),
           Text('Tarefas Não Concluídas', style: TextStyle(fontWeight: FontWeight.bold)),
           Expanded(
-            child: ListView.builder(
-              itemCount: tarefas_nao_concluidas.length,
-              itemBuilder: (context, index) {
-                return Card(
-                  surfaceTintColor: Colors.red,
-                  child: Row(
-                    children: [
-                      IconButton(
+            child: ReorderableListView(
+              onReorder: (oldIndex, newIndex) {
+                setState(() {
+                  if (newIndex > oldIndex) {
+                    newIndex -= 1;
+                  }
+                  final item = tarefas_nao_concluidas.removeAt(oldIndex);
+                  tarefas_nao_concluidas.insert(newIndex, item);
+                });
+              },
+              children: [
+                for (int index = 0; index < tarefas_nao_concluidas.length; index++)
+                  Card(
+                    key: ValueKey(index),
+                    surfaceTintColor: Colors.red,
+                    child: ListTile(
+                      title: Text(tarefas_nao_concluidas[index]),
+                      leading: IconButton(
                         icon: Icon(Icons.check_box_outline_blank),
                         onPressed: () {
                           _completed(index);
                         },
                       ),
-                      Expanded(child: Text(tarefas_nao_concluidas[index])),
-                      IconButton(
+                      trailing: IconButton(
                         onPressed: () {
                           _deleteTarefaNaoConcluida(index);
                         },
                         icon: Icon(Icons.delete),
                         color: Colors.red,
                       ),
-                    ],
+                    ),
                   ),
-                );
-              }
+              ]
             ),
           ),
           Text('Tarefas Concluídas', style: TextStyle(fontWeight: FontWeight.bold)),
           Expanded(
-            child: ListView.builder(
-              itemCount: tarefas_concluidas.length,
-              itemBuilder: (context, index) {
-                return Card(
-                  surfaceTintColor: Colors.green,
-                  child: Row(
-                    children: [
-                      IconButton(
+            child: ReorderableListView(
+              onReorder: (oldIndex, newIndex) {
+                setState(() {
+                  if (newIndex > oldIndex) {
+                    newIndex -= 1;
+                  }
+                  final item = tarefas_concluidas.removeAt(oldIndex);
+                  tarefas_concluidas.insert(newIndex, item);
+                });
+              },
+              children: [
+                for (int index = 0; index < tarefas_concluidas.length; index++)
+                  Card(
+                    key: ValueKey(index),
+                    surfaceTintColor: Colors.green,
+                    child: ListTile(
+                      title: Text(tarefas_concluidas[index]),
+                      leading: IconButton(
                         icon: Icon(Icons.check_box),
                         onPressed: () {
                           _notCompleted(index);
                         },
                       ),
-                      Expanded(child: Text(tarefas_concluidas[index])),
-                      IconButton(
+                      trailing: IconButton(
                         onPressed: () {
                           _deleteTarefaConcluida(index);
                         },
                         icon: Icon(Icons.delete),
                         color: Colors.red,
                       ),
-                    ],
-                  ),      
-                );
-              },
+                    ),
+                  ),
+              ]
             ),
           ),
         ],
