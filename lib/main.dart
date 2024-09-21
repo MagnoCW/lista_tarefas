@@ -35,39 +35,52 @@ class _MyHomePageState extends State<MyHomePage> {
   List<String> tarefas_concluidas = [];
   
   TextEditingController _editingController = TextEditingController();
+  String _labelText = 'Digite a nova tarefa';
+  int? _editingIndex;
 
-  void _completed(int i) {
+  void _changeList(int i, List<String> l1, List<String> l2) {
     setState(() {
-      tarefas_concluidas.add(tarefas_nao_concluidas[i]);
-      tarefas_nao_concluidas.removeAt(i);
+      l2.add(l1[i]);
+      l1.removeAt(i);
     });
   }
 
-  void _notCompleted(int i) {
+  void _deleteTarefa(int index, List<String> tarefas) {
     setState(() {
-      tarefas_nao_concluidas.add(tarefas_concluidas[i]);
-      tarefas_concluidas.removeAt(i);
-    });
-  }
-
-  void _deleteTarefaNaoConcluida(int i) {
-    setState(() {
-      tarefas_nao_concluidas.removeAt(i);
-    });
-  }
-
-  void _deleteTarefaConcluida(int i) {
-    setState(() {
-      tarefas_concluidas.removeAt(i);
+      tarefas.removeAt(index);
     });
   }
 
   void _addTarefa() {
     setState(() {
       if (_editingController.text.isNotEmpty) {
-        tarefas_nao_concluidas.add(_editingController.text);
+        if (_editingIndex != null) {
+          tarefas_nao_concluidas[_editingIndex!] = _editingController.text;
+          _editingIndex = null;
+        } else {
+          tarefas_nao_concluidas.add(_editingController.text);
+        }
         _editingController.clear();
+        _labelText = 'Digite a nova tarefa';
       }
+    });
+  }
+
+  void _reorderTarefa(newIndex, oldIndex, List<String> lista) {
+    setState(() {
+      if (newIndex > oldIndex) {
+        newIndex -= 1;
+      }
+      final item = lista.removeAt(oldIndex);
+      lista.insert(newIndex, item);
+    });
+  }
+
+  void _editTarefa(int index, List<String> lista) {
+    setState(() {
+      _editingController.text = lista[index];
+      _labelText = 'Editando a tarefa';
+      _editingIndex = index;
     });
   }
 
@@ -86,7 +99,7 @@ class _MyHomePageState extends State<MyHomePage> {
             controller: _editingController,
             decoration: InputDecoration(
               border: OutlineInputBorder(),
-              labelText: 'Digite a nova tarefa',
+              labelText: _labelText,
             ),
           ),
           SizedBox(height: 20),
@@ -94,13 +107,7 @@ class _MyHomePageState extends State<MyHomePage> {
           Expanded(
             child: ReorderableListView(
               onReorder: (oldIndex, newIndex) {
-                setState(() {
-                  if (newIndex > oldIndex) {
-                    newIndex -= 1;
-                  }
-                  final item = tarefas_nao_concluidas.removeAt(oldIndex);
-                  tarefas_nao_concluidas.insert(newIndex, item);
-                });
+                _reorderTarefa(newIndex, oldIndex, tarefas_nao_concluidas);
               },
               children: [
                 for (int index = 0; index < tarefas_nao_concluidas.length; index++)
@@ -112,15 +119,24 @@ class _MyHomePageState extends State<MyHomePage> {
                       leading: IconButton(
                         icon: Icon(Icons.check_box_outline_blank),
                         onPressed: () {
-                          _completed(index);
+                          _changeList(index, tarefas_nao_concluidas, tarefas_concluidas);
                         },
                       ),
-                      trailing: IconButton(
-                        onPressed: () {
-                          _deleteTarefaNaoConcluida(index);
-                        },
-                        icon: Icon(Icons.delete),
-                        color: Colors.red,
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              _editTarefa(index, tarefas_nao_concluidas);
+                            }, icon: Icon(Icons.edit)),
+                          IconButton(
+                            onPressed: () {
+                              _deleteTarefa(index, tarefas_nao_concluidas);
+                            },
+                            icon: Icon(Icons.delete),
+                            color: Colors.red,
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -131,13 +147,7 @@ class _MyHomePageState extends State<MyHomePage> {
           Expanded(
             child: ReorderableListView(
               onReorder: (oldIndex, newIndex) {
-                setState(() {
-                  if (newIndex > oldIndex) {
-                    newIndex -= 1;
-                  }
-                  final item = tarefas_concluidas.removeAt(oldIndex);
-                  tarefas_concluidas.insert(newIndex, item);
-                });
+                _reorderTarefa(newIndex, oldIndex, tarefas_concluidas);
               },
               children: [
                 for (int index = 0; index < tarefas_concluidas.length; index++)
@@ -149,12 +159,12 @@ class _MyHomePageState extends State<MyHomePage> {
                       leading: IconButton(
                         icon: Icon(Icons.check_box),
                         onPressed: () {
-                          _notCompleted(index);
+                          _changeList(index, tarefas_concluidas, tarefas_nao_concluidas);
                         },
                       ),
                       trailing: IconButton(
                         onPressed: () {
-                          _deleteTarefaConcluida(index);
+                          _deleteTarefa(index, tarefas_concluidas);
                         },
                         icon: Icon(Icons.delete),
                         color: Colors.red,
