@@ -1,4 +1,8 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -30,7 +34,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<String> tarefas_nao_concluidas = ['1', '2', '3', '4'];
+  List<String> tarefas_nao_concluidas = [];
   List<String> tarefas_concluidas = [];
 
   final TextEditingController _editingController = TextEditingController();
@@ -38,17 +42,60 @@ class _MyHomePageState extends State<MyHomePage> {
   String _alertDialogTitle = 'Adicionar Tarefa';
   int? _editingIndex;
 
-  void _changeList(int i, List<String> l1, List<String> l2) {
-    setState(() {
-      l2.add(l1[i]);
-      l1.removeAt(i);
-    });
+  Future<File> _getFile() async {
+    final diretorio = await getApplicationDocumentsDirectory();
+    return File("${diretorio.path}/dados.json");
   }
 
-  void _deleteTarefa(int index, List<String> tarefas) {
+  Future<void> _salvarArquivo(List lista1, List lista2) async {
+    Map<String, dynamic> dados = {
+      "tarefas_nao_concluidas": lista1,
+      "tarefas_concluidas": lista2
+    };
+
+    // Converter o mapa para JSON
+    String jsonDados = jsonEncode(dados);
+
+    // Salvar o JSON no arquivo
+    var arquivo = await _getFile();
+    await arquivo.writeAsString(jsonDados);
+  }
+
+  Future<void> _lerArquivo() async {
+    try {
+      final arquivo = await _getFile();
+      final dados = await arquivo.readAsString();
+      final jsonMap = jsonDecode(dados); // Decodifica o JSON em um mapa
+
+      setState(() {
+        tarefas_nao_concluidas =
+            List<String>.from(jsonMap['tarefas_nao_concluidas']);
+        tarefas_concluidas = List<String>.from(jsonMap['tarefas_concluidas']);
+      });
+    } catch (e) {
+      print("Erro ao ler o arquivo: $e");
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _lerArquivo();
+  }
+
+  void _changeList(int i, List lista1, List lista2) {
     setState(() {
-      tarefas.removeAt(index);
+      lista2.add(lista1[i]);
+      lista1.removeAt(i);
     });
+    _salvarArquivo(lista1, lista2);
+  }
+
+  void _deleteTarefa(int index, List lista1, List lista2) {
+    setState(() {
+      lista1.removeAt(index);
+    });
+    _salvarArquivo(lista1, lista2);
   }
 
   void _reset() {
@@ -58,19 +105,20 @@ class _MyHomePageState extends State<MyHomePage> {
     _editingIndex = null;
   }
 
-  void _addTarefa(List<String> lista) {
+  void _addTarefa(List lista1, List lista2, String novaTarefa) {
     setState(() {
-      if (_editingController.text.isNotEmpty) {
+      if (novaTarefa.isNotEmpty) {
         if (_editingIndex != null) {
-          lista[_editingIndex!] = _editingController.text;
+          lista1[_editingIndex!] = novaTarefa;
         } else {
-          lista.add(_editingController.text);
+          lista1.add(novaTarefa);
         }
       }
     });
+    _salvarArquivo(lista1, lista2);
   }
 
-  void _reorderTarefa(newIndex, oldIndex, List<String> lista) {
+  void _reorderTarefa(newIndex, oldIndex, List lista) {
     setState(() {
       if (newIndex > oldIndex) {
         newIndex -= 1;
@@ -80,7 +128,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void _editTarefa(int index, List<String> lista) {
+  void _editTarefa(int index, List lista) {
     setState(() {
       _editingController.text = lista[index];
       _labelText = 'Editando a tarefa';
@@ -89,7 +137,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void _mostrarDialogo(BuildContext context, List<String> lista) {
+  void _mostrarDialogo(BuildContext context, List lista1, List lista2) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -109,7 +157,7 @@ class _MyHomePageState extends State<MyHomePage> {
             actions: <Widget>[
               TextButton(
                 onPressed: () {
-                  _addTarefa(lista);
+                  _addTarefa(lista1, lista2, _editingController.text);
                   _reset();
                   Navigator.pop(context);
                 },
@@ -131,8 +179,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget _listas({
     String titulo = 'Tarefas',
-    required List<String> lista1,
-    required List<String> lista2,
+    required List lista1,
+    required List lista2,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,13 +219,13 @@ class _MyHomePageState extends State<MyHomePage> {
                         IconButton(
                           onPressed: () {
                             _editTarefa(index, lista1);
-                            _mostrarDialogo(context, lista1);
+                            _mostrarDialogo(context, lista1, lista2);
                           },
                           icon: const Icon(Icons.edit),
                         ),
                         IconButton(
                           onPressed: () {
-                            _deleteTarefa(index, lista1);
+                            _deleteTarefa(index, lista1, lista2);
                           },
                           icon: const Icon(Icons.delete),
                           color: Colors.red,
@@ -223,11 +271,12 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _mostrarDialogo(context, tarefas_nao_concluidas);
+          _mostrarDialogo(context, tarefas_nao_concluidas, tarefas_concluidas);
         },
         child: const Icon(Icons.add),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
     );
   }
 }
